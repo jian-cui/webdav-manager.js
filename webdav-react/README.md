@@ -2,6 +2,73 @@
 
 这是一个基于 React 的 WebDAV 文件管理器，允许你浏览、上传、下载、编辑和管理 WebDAV 服务器上的文件。
 
+## TODO
+
+1. 端点续传
+
+```javascript
+async function uploadChunks(file, webdavUrl, username, password) {
+  // 设置验证信息
+  const auth = btoa(`${username}:${password}`);
+  // 分块大小（例如 5MB）
+  const chunkSize = 5 * 1024 * 1024;
+  // 总分块数
+  const totalChunks = Math.ceil(file.size / chunkSize);
+
+  // 创建文件（0字节）- 某些WebDAV服务器需要这一步
+  try {
+    await axios.put(
+      `${webdavUrl}/${file.name}`,
+      new Blob([]), // 空内容
+      {
+        headers: {
+          Authorization: `Basic ${auth}`,
+          'Content-Type': 'application/octet-stream',
+          'Content-Length': '0',
+        },
+      }
+    );
+  } catch (error) {
+    // 如果文件已存在，某些服务器会返回错误，这里可以忽略
+    console.log('初始化文件可能已存在:', error.message);
+  }
+
+  // 上传每个分块
+  for (let i = 0; i < totalChunks; i++) {
+    const start = i * chunkSize;
+    const end = Math.min(file.size, start + chunkSize) - 1;
+    const chunk = file.slice(start, end + 1);
+
+    try {
+      await axios.put(`${webdavUrl}/${file.name}`, chunk, {
+        headers: {
+          Authorization: `Basic ${auth}`,
+          'Content-Type': 'application/octet-stream',
+          'Content-Range': `bytes ${start}-${end}/${file.size}`,
+        },
+        onUploadProgress: progressEvent => {
+          // 计算当前块的上传进度
+          const percentComplete = Math.round(((i * chunkSize + progressEvent.loaded) / file.size) * 100);
+          console.log(`上传进度: ${percentComplete}%`);
+          // 更新进度条
+          updateProgressBar(percentComplete);
+        },
+      });
+      console.log(`块 ${i + 1}/${totalChunks} 上传成功`);
+    } catch (error) {
+      console.error(`块 ${i + 1}/${totalChunks} 上传失败:`, error);
+      // 这里可以实现重试逻辑
+      i--; // 重试当前块
+    }
+  }
+
+  console.log('文件上传完成');
+}
+```
+
+2. 上传、删除文件、新建目录后自动刷新目录列表
+3. 登录及权限管理
+
 ## 功能特性
 
 - 浏览 WebDAV 目录结构
