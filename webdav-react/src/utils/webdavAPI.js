@@ -187,15 +187,23 @@ const createWebDAVAPI = (baseURL, auth = null) => {
     },
 
     // 上传文件
-    async uploadFile(path, file) {
+    async uploadFile(path, file, onProgress) {
       try {
         await api.request({
           method: 'PUT',
           url: path,
           data: file,
+          timeout: 3600000, // 1小时
           headers: {
             'Content-Type': file.type || 'application/octet-stream',
           },
+          onUploadProgress:
+            typeof onProgress === 'function'
+              ? progressEvent => {
+                  const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                  onProgress(percentCompleted, file);
+                }
+              : undefined,
         });
         return true;
       } catch (error) {
@@ -211,6 +219,7 @@ const createWebDAVAPI = (baseURL, auth = null) => {
           method: 'GET',
           url: path,
           responseType: 'blob',
+          timeout: 3600000, // 1小时
         });
         return response.data;
       } catch (error) {

@@ -129,15 +129,41 @@ const useWebDAVOperations = (webdavAPI, refreshDirectory, currentPathRef) => {
 
   // 上传文件
   const uploadFiles = useCallback(
-    async (files, onStart, onError) => {
+    async (files, onStart, onError, onProgress) => {
       if (!files || files.length === 0) return false;
 
       try {
-        onStart && onStart();
+        // 只有当onStart是函数时才调用
+        if (typeof onStart === 'function') {
+          onStart();
+        }
+
         const currentPath = currentPathRef.current;
 
+        // 创建一个进度跟踪对象
+        const progressMap = new Map();
+        files.forEach(file => {
+          progressMap.set(file.name, 0);
+        });
+
+        // 定义进度回调函数
+        const handleProgress = (percent, file) => {
+          console.log('handleProgress', percent, file);
+          progressMap.set(file.name, percent);
+          console.log(22222, typeof onProgress);
+
+          // 计算总体进度
+          if (typeof onProgress === 'function') {
+            const totalProgress =
+              Array.from(progressMap.values()).reduce((sum, value) => sum + value, 0) / files.length;
+            console.log('totalProgress', totalProgress);
+            onProgress(Math.round(totalProgress), progressMap);
+          }
+        };
+
+        // 顺序上传文件，以便更准确地跟踪进度
         for (const file of files) {
-          await webdavAPI.uploadFile(`${currentPath}${encodeURIComponent(file.name)}`, file);
+          await webdavAPI.uploadFile(`${currentPath}${encodeURIComponent(file.name)}`, file, handleProgress);
         }
 
         // 刷新目录
@@ -145,7 +171,9 @@ const useWebDAVOperations = (webdavAPI, refreshDirectory, currentPathRef) => {
         return true;
       } catch (err) {
         console.error('上传失败:', err);
-        onError && onError(`上传失败: ${err.message}`);
+        if (typeof onError === 'function') {
+          onError(`上传失败: ${err.message}`);
+        }
         return false;
       }
     },

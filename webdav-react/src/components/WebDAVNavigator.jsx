@@ -319,14 +319,13 @@ const WebDAVNavigator = ({ webdavUrl }) => {
   };
 
   // 处理上传
-  const handleUpload = async (files) => {
-    setLoading(true);
+  const handleUpload = async (files, onProgress) => {
     setError(null);
     const success = await uploadFiles(files,
-      () => setLoading(true),
-      (err) => setError(err)
+      null, // 不再设置全局loading状态
+      (err) => setError(err),
+      onProgress
     );
-    setLoading(false);
     if (success) {
       closeDialog();
     }
@@ -500,7 +499,6 @@ const WebDAVNavigator = ({ webdavUrl }) => {
         isOpen={true}
         onClose={closeDialog}
         onUpload={handleUpload}
-        currentPath={currentPath}
       />,
       onConfirm: null, // 上传组件自己处理上传逻辑
       showCancel: true,
@@ -624,9 +622,12 @@ const WebDAVNavigator = ({ webdavUrl }) => {
       {dialog.isOpen && dialog.type === 'upload' ? (
         <FileUpload
           isOpen={dialog.isOpen}
-          onClose={closeDialog}
+          onClose={() => {
+            closeDialog();
+            // 上传完成后刷新目录
+            refreshCurrentDirectory();
+          }}
           onUpload={handleUpload}
-          currentPath={currentPath}
         />
       ) : dialog.isOpen && (
         <Dialog

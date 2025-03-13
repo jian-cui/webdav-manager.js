@@ -59,36 +59,38 @@ const FileList = ({
     // 如果不是目录，直接保留
     if (!item.isDir) return true;
 
-    // 调试日志
-    console.log(`检查目录项: ${item.name}, URI: ${item.uri}, 当前路径: ${currentPath}`);
-
-    // 比较URI和当前路径是否一致
     // 规范化URI和当前路径，确保它们的格式一致
     const normalizedItemUri = item.uri.endsWith('/') ? item.uri : item.uri + '/';
     const normalizedCurrentPath = currentPath.endsWith('/') ? currentPath : currentPath + '/';
 
-    // 提取URI的路径部分（移除协议、主机等）
-    let itemPath = normalizedItemUri;
+    // 对URI进行解码，处理URL编码的中文字符
+    let decodedItemUri;
     try {
-      // 尝试解析为URL
-      const url = new URL(normalizedItemUri);
-      itemPath = url.pathname;
-    } catch {
-      // 如果不是有效的URL，保持原样
-      console.log(`无法解析为URL: ${normalizedItemUri}`);
+      decodedItemUri = decodeURIComponent(normalizedItemUri);
+    } catch (e) {
+      // 如果解码失败，使用原始值
+      decodedItemUri = normalizedItemUri;
     }
 
     // 如果URI与当前路径相同，则过滤掉
     // 检查多种可能的匹配情况
-    const isSamePath =
-      normalizedItemUri === normalizedCurrentPath || // 完全匹配
-      itemPath === normalizedCurrentPath || // 路径部分匹配
-      (baseUrl && normalizedItemUri === baseUrl + normalizedCurrentPath.replace(/^\//, '')); // 基础URL + 相对路径匹配
+    console.log('比较路径:', {
+      decodedItemUri,
+      normalizedCurrentPath,
+      originalItemUri: normalizedItemUri
+    });
 
-    console.log(`目录项URI: ${normalizedItemUri}, 提取路径: ${itemPath}, 当前路径: ${normalizedCurrentPath}, 是否相同: ${isSamePath}`);
+    const isSamePath =
+      decodedItemUri === normalizedCurrentPath || // 完全匹配（解码后）
+      normalizedItemUri === normalizedCurrentPath || // 完全匹配（原始）
+      (baseUrl && (
+        decodedItemUri === baseUrl + normalizedCurrentPath.replace(/^\//, '') || // 基础URL + 相对路径匹配（解码后）
+        normalizedItemUri === baseUrl + normalizedCurrentPath.replace(/^\//, '') // 基础URL + 相对路径匹配（原始）
+      ));
 
     return !isSamePath;
   });
+
 
   // 获取缩略图URL
   const getThumbnailUrl = (item) => {
