@@ -1,0 +1,101 @@
+/* FileList.css */
+.file-list {
+  width: 100%;
+  overflow: auto;
+}
+
+.file-list table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.file-list th {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+  font-weight: bold;
+  color: #333;
+}
+
+.file-list td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.file-list tr:hover {
+  background-color: #f5f5f5;
+}
+
+.file-list tr.selected {
+  background-color: #e3f2fd;
+}
+
+.file-list .thumb {
+  width: 40px;
+  text-align: center;
+}
+
+.file-list .size {
+  width: 100px;
+  text-align: right;
+}
+
+.file-list .actions {
+  width: 200px;
+  text-align: right;
+}
+
+.file-list .icon {
+  font-size: 1.5em;
+}
+
+.file-list .icon.dir {
+  color: #ffc107;
+}
+
+.file-list a {
+  color: #333;
+  text-decoration: none;
+}
+
+.file-list a:hover {
+  text-decoration: underline;
+}
+
+.file-list button {
+  background: none;
+  border: none;
+  color: #2196f3;
+  cursor: pointer;
+  margin-left: 8px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.file-list button:hover {
+  background-color: #e3f2fd;
+}
+
+.file-list .empty {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+}
+
+.file-list img {
+  max-width: 32px;
+  max-height: 32px;
+  vertical-align: middle;
+}
+
+.file-list input[type="checkbox"] {
+  margin-right: 8px;
+}
+
+.file-list .parent-dir {
+  font-weight: bold;
+}
+
+.file-list .parent-dir a {
+  color: #2196f3;
+}

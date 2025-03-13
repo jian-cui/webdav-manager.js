@@ -1,0 +1,7 @@
+---
+description: style
+globs: .tsx, .css
+alwaysApply: false
+---
+
+样式模仿`shadcn/ui`
